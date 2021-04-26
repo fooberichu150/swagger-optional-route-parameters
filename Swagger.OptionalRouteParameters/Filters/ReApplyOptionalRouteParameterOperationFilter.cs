@@ -14,7 +14,7 @@ namespace Swagger.OptionalRouteParameters.Filters
 				.GetCustomAttributes(true)
 				.OfType<Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute>();
 
-			var httpMethodWithOptional = httpMethodAttributes?.FirstOrDefault(m => m.Template.Contains("?"));
+			var httpMethodWithOptional = httpMethodAttributes?.FirstOrDefault(m => m.Template?.Contains("?") ?? false);
 			if (httpMethodWithOptional == null)
 				return;
 
