@@ -10,17 +10,13 @@ namespace Swagger.OptionalRouteParameters.Filters
 
 		public void Apply(OpenApiOperation operation, OperationFilterContext context)
 		{
-			var httpMethodAttributes = context.MethodInfo
-				.GetCustomAttributes(true)
-				.OfType<Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute>();
+			var routeInfo = context.ApiDescription.ActionDescriptor.AttributeRouteInfo;
 
-			var httpMethodWithOptional = httpMethodAttributes?.FirstOrDefault(m => m.Template?.Contains("?") ?? false);
-			if (httpMethodWithOptional == null)
-				return;
-
+			string allParamsRegex = $"{{(?<{captureName}>\\w+)\\??}}";
 			string regex = $"{{(?<{captureName}>\\w+)\\?}}";
 
-			var matches = System.Text.RegularExpressions.Regex.Matches(httpMethodWithOptional.Template, regex);
+			var matches = System.Text.RegularExpressions.Regex.Matches(routeInfo.Template, regex);
+			var allParamMatches = System.Text.RegularExpressions.Regex.Matches(routeInfo.Template, allParamsRegex);
 
 			foreach (System.Text.RegularExpressions.Match match in matches)
 			{
@@ -35,6 +31,16 @@ namespace Swagger.OptionalRouteParameters.Filters
 					//parameter.Schema.Default = new OpenApiString(string.Empty);
 					parameter.Schema.Nullable = true;
 				}
+			}
+
+			// any parameter represented in the operation that isn't represented in the template, remove it
+			for (int paramIndex = operation.Parameters.Count-1; paramIndex >= 0; paramIndex--) //foreach (var parameter in operation.Parameters)
+			{
+				var parameter = operation.Parameters[paramIndex];
+				var match = allParamMatches.FirstOrDefault(m => m.Groups[captureName].Value == parameter.Name);
+				// if the route doesn't have this parameter, just remove it...
+				if (match == null)
+					operation.Parameters.Remove(parameter);
 			}
 		}
 	}

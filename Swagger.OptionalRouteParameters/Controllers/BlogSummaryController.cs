@@ -12,10 +12,13 @@ namespace Swagger.OptionalRouteParameters.Controllers
     [ApiController]
     public class BlogSummaryController : ControllerBase
     {
+        [HttpGet("{year}")]
+        [HttpGet("{year}/{month}")]
         [HttpGet("{year}/{month}/{day?}")]
+        //[HttpGet("{year}/{month}/{day?}")]
         // commented out since I have it applied globally
         //[SwaggerOperationFilter(typeof(Filters.ReApplyOptionalRouteParameterOperationFilter))]
-        public async Task<IActionResult> Get([FromRoute]int year, [FromRoute]int month, [FromRoute]int? day = null)
+        public async Task<IActionResult> Get([FromRoute]int year, [FromRoute]int? month = null, [FromRoute]int? day = null)
         {
             await Task.CompletedTask;
 
